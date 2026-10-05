@@ -669,7 +669,7 @@
 
           document.addEventListener("visibilitychange", () => {
             if (document.hidden) ac.suspend();
-            else if (playing && !muted) ac.resume();
+            else ac.resume();
           });
           return true;
         }
@@ -830,9 +830,14 @@
 
         return {
           get on() { return playing && !muted; },
-          start() {
-            if (!ac && !init()) return;
+          // включить звук без музыки — вызывать из нажатия, иначе мобильные браузеры не дадут
+          wake() {
+            if (!ac && !init()) return false;
             ac.resume();
+            return true;
+          },
+          start() {
+            if (!this.wake()) return;
             muted = false;
             if (!playing) {
               playing = true;
@@ -845,10 +850,15 @@
             if (!ac) return;
             muted = true;
             fadeTo(0, 0.6);
-            setTimeout(() => muted && ac.suspend(), 700);
+            // звуки бумаги должны работать и дальше, поэтому глушим только музыку
+            setTimeout(() => {
+              if (!muted) return;
+              clearInterval(timer);
+              playing = false;
+            }, 700);
           },
           sfx(name) {
-            if (!ac || !this.on) return;
+            if (!ac) return;
             SFX[name](ac.currentTime + 0.02);
           },
           // «звёздочки» при открытии конверта
@@ -878,7 +888,6 @@
         let tx = 0, ty = 0, cx = 0, cy = 0;
         let lastInput = -1e9;
         let state = "closed";
-        let userMuted = false;
         const timers = [];
         const later = (fn, ms) => timers.push(setTimeout(fn, ms));
 
@@ -1041,7 +1050,8 @@
           if (state !== "closed") return;
           state = "opening";
           enableOrientation();
-          if (!userMuted) { Music.start(); setSoundUI(); }
+          // музыка по умолчанию выключена (кнопка в углу), звуки бумаги — играют
+          Music.wake();
           Music.sfx("open");
           scrollTo(0, 0);
           env.classList.add("open");
@@ -1083,8 +1093,8 @@
           soundBtn.setAttribute("aria-pressed", String(Music.on));
         }
         soundBtn.addEventListener("click", () => {
-          if (Music.on) { Music.stop(); userMuted = true; }
-          else { Music.start(); userMuted = false; }
+          if (Music.on) Music.stop();
+          else Music.start();
           setSoundUI();
         });
 
