@@ -1,0 +1,17 @@
+# Деплой открытки на GitLab Pages при каждом пуше в основную ветку.
+# Сайт: https://mxy-dot.gitlab.io/teachers_thx/
+
+pages:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - apk add --no-cache brotli
+    - mkdir -p public
+    - cp index.html public/
+    # Pages сам отдаёт заранее сжатые .br/.gz версии — меньше трафика на медленном интернете
+    - find public -type f \( -name '*.html' -o -name '*.css' -o -name '*.js' -o -name '*.svg' \) -exec gzip -k -9 {} \; -exec brotli -k -q 11 {} \;
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
