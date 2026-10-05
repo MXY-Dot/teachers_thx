@@ -40,13 +40,30 @@
         "image": "https://mxy-dot.github.io/teachers_thx/og.jpg"
       }
     </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Cormorant+Garamond:wght@500;600&display=swap"
-      rel="stylesheet"
-    />
+    <!-- Шрифты лежат рядом и урезаны до нужных букв (scripts/subset-fonts.mjs).
+         Текст сразу виден системным шрифтом, красивый подменяет его, когда догрузится. -->
+    <link rel="preload" href="fonts/cormorant-500.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fonts/caveat-700.woff2" as="font" type="font/woff2" crossorigin />
     <style>
+      @font-face {
+        font-family: "Cormorant Garamond";
+        font-weight: 500;
+        font-display: swap;
+        src: url(fonts/cormorant-500.woff2) format("woff2");
+      }
+      @font-face {
+        font-family: "Cormorant Garamond";
+        font-weight: 600;
+        font-display: swap;
+        src: url(fonts/cormorant-600.woff2) format("woff2");
+      }
+      @font-face {
+        font-family: "Caveat";
+        font-weight: 700;
+        font-display: swap;
+        src: url(fonts/caveat-700.woff2) format("woff2");
+      }
+
       :root {
         --bg-1: #fbf3ec;
         --bg-2: #f7dfd4;
@@ -213,16 +230,9 @@
       .deco.bl svg { transform: rotate(180deg); }
       .deco svg { display: block; width: 100%; height: auto; }
 
-      .eyebrow {
-        font-size: 14px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--rose);
-        font-weight: 600;
-      }
       .letter h1 {
         margin: 12px 0 6px;
-        font-family: "Caveat", cursive;
+        font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
         font-weight: 700;
         font-size: clamp(40px, 10vw, 62px);
         line-height: 1;
@@ -257,8 +267,8 @@
 
       .sign {
         margin-top: 28px;
-        font-family: "Caveat", cursive;
-        font-weight: 600;
+        font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+        font-weight: 700;
         font-size: clamp(24px, 6vw, 30px);
         color: var(--ink-soft);
         line-height: 1.2;
@@ -332,7 +342,7 @@
         display: flex;
         justify-content: center;
         padding-top: 9%;
-        font-family: "Caveat", cursive;
+        font-family: "Caveat", "Segoe Print", "Bradley Hand", cursive;
         font-weight: 700;
         font-size: clamp(22px, 6vw, 32px);
         color: var(--rose-deep);
@@ -1093,6 +1103,11 @@
         populate();
         requestAnimationFrame(frame);
       })();
+
+      // офлайн-кеш регистрируем после загрузки, чтобы не отнимать канал у самой страницы
+      if ("serviceWorker" in navigator && location.protocol === "https:") {
+        addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+      }
     </script>
   </body>
 </html>

@@ -24,10 +24,18 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Collect site files
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Collect and minify site files
         run: |
           mkdir -p public
-          cp index.html og.jpg apple-touch-icon.png public/
+          cp -r fonts og.jpg apple-touch-icon.png public/
+          # HTML/CSS/JS без пробелов и комментариев — меньше байт на медленном интернете
+          npx -y html-minifier-terser@7 --collapse-whitespace --conservative-collapse \
+            --remove-comments --minify-css true --minify-js true -o public/index.html index.html
+          # новая версия офлайн-кеша на каждый деплой
+          sed "s/__VERSION__/${GITHUB_SHA::8}/" sw.js > public/sw.js
       - uses: actions/configure-pages@v5
         with:
           enablement: true
